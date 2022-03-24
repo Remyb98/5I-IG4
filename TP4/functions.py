@@ -21,8 +21,35 @@ def vocabulaire(N : int, paths : list):
             descriptors_list.extend(descriptors)
     dataset = np.array(descriptors_list)
     model = MiniBatchKMeans(n_clusters=N)
-    model.fit(dataset)
-    np.savetxt('cluster_center.txt', model.cluster_centers_, delimiter=',')
+    predicted = model.fit_predict(dataset)
     variance = model.inertia_
-    norm = random.randint(0, 15)
-    return variance, norm
+    centers = model.cluster_centers_
+    np.savetxt('cluster_center.txt', centers, delimiter=',')
+    error = 0
+    for i in range(len(predicted)):
+        class_predicted = predicted[i]
+        center = centers[class_predicted]
+        local_center = dataset[i]
+        local_max = np.linalg.norm(center - local_center)
+        if(local_max > error): error = local_max
+    return variance, error, model
+
+
+def vectoriser(image, vocabulaire):
+    s = cv2.xfeatures2d.SURF_create()
+    image_but_in_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    kpts, descriptors = s.detectAndCompute(image_but_in_gray, None)
+    descriptors_list = np.array([])
+    descriptors_list = np.append(descriptors_list, descriptors)
+
+    descriptors = np.reshape(descriptors_list, (len(descriptors_list) // 64, 64))
+    descriptors = np.float32(descriptors)
+
+    return vocabulaire.predict(descriptors)
+
+def testVect(classes, model):
+    vect_list = []
+    for path in classes:
+        for image in glob.glob(f'{path}/*.jpg'):
+            vect_list.append(vectoriser(cv2.imread(image), model))
+    return vect_list
