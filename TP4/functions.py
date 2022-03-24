@@ -5,7 +5,9 @@ def warn(*args, **kwargs): pass
 import warnings
 warnings.warn = warn
 from sklearn.cluster import MiniBatchKMeans
-
+import pickle
+import os
+import dml
 
 # https://yohanes.gultom.id/2018/05/20/sift-surf-bow-for-big-number-of-clusters/
 import random
@@ -49,7 +51,42 @@ def vectoriser(image, vocabulaire):
 
 def testVect(classes, model):
     vect_list = []
+    file_list = []
     for path in classes:
         for image in glob.glob(f'{path}/*.jpg'):
             vect_list.append(vectoriser(cv2.imread(image), model))
-    return vect_list
+            file_list.append(image)
+    
+    with open(os.path.join('saves','base_vectors.pickle'), 'wb') as f:
+        pickle.dump(vect_list, f)
+    with open(os.path.join('saves','base_files.pickle'), 'wb') as f:
+        pickle.dump(file_list, f)
+
+def apprentissage(N):
+    vectors = pickle.load(open(os.path.join('saves', 'base_vectors.pickle'), 'rb'))
+    files = pickle.load(open(os.path.join('saves', 'base_files.pickle'), 'rb'))
+    classes = ['flamingo', 'panda']
+    X = []
+    Y = []
+    for i in range(len(vectors)):
+        vect = vectors[i]
+        file = files[i]
+        for j, c in enumerate(classes):
+            if c in file:
+                Y.append(j+1)
+                temp = []
+                for _ in range(N):
+                    temp.append(0)
+                for e in vect:
+                    temp[e] += 1
+                X.append(temp)
+                break
+    return X, Y
+
+def KDA(X, Y):
+    degres = [1,2,3,4,5,6,7,8,9,10]
+    for deg in degres:
+        s= dml.kda.KDA(n_components=2, kernel='poly', degree=deg)
+        s.fit(X,Y)
+        temp_value = s.transform(X)
+        print(str("\nDegré polynome : " + str(deg) + " -- Valeurs transform : " + str(temp_value)))
