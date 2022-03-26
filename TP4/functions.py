@@ -80,13 +80,10 @@ def apprentissage(N):
                 for e in vect:
                     temp[e] += 1
                 X.append(temp)
-                break
     return X, Y
 
 def KDA(X, Y):
-    degres = [1,2,3,4,5,6,7,8,9,10]
-    for deg in degres:
-        s= dml.kda.KDA(n_components=2, kernel='poly', degree=deg)
-        s.fit(X,Y)
-        temp_value = s.transform(X)
-        print(str("\nDegré polynome : " + str(deg) + " -- Valeurs transform : " + str(temp_value)))
+    s= dml.kda.KDA(n_components=2, kernel='poly', degree=8)
+    s.fit(X,Y)
+    temp_value = s.transform(X)
+    print(str("\nDegré polynome : " + str(8) + " -- Valeurs transform : " + str(temp_value)))

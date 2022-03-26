@@ -5,18 +5,10 @@ import cv2
 import numpy as np
 import dml
 
-N = 5
+N = 7 
 
-def main():
-    classes = [
-        './classes/dolphin',
-        './classes/flamingo',
-        './classes/panda',
-        './classes/wild_cat'
-    ]
-
-    # clusters = [2 ** x for x in range(1, 15)]
-    clusters = [x for x in range(2, N+1)]
+def find_N(classes):
+    clusters = [2 ** x for x in range(2, N+1)]
     print(clusters)
 
     variances = list()
@@ -38,9 +30,21 @@ def main():
     axs[1].set_xlabel("Clusters")
     plt.savefig('plot.png')
 
-    functions.testVect(classes, model)
+def main():
+    classes = [
+        './classes/dolphin',
+        './classes/flamingo',
+        './classes/panda',
+        './classes/wild_cat'
+    ]
 
-    X, Y = functions.apprentissage(N)
+    cluster = N ** 2
+    variance, error, model = functions.vocabulaire(cluster, classes[1:3])
+
+    functions.testVect(classes[1:3], model)
+
+    X, Y = functions.apprentissage(cluster)
+    #print(X, Y)
     functions.KDA(X, Y)
 
 if __name__ == '__main__':
