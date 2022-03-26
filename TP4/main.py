@@ -1,14 +1,11 @@
 import functions
 import matplotlib.pyplot as plt
-import glob
-import cv2
-import numpy as np
-import dml
 
-N = 7 
+N = 7
+
 
 def find_N(classes):
-    clusters = [2 ** x for x in range(2, N+1)]
+    clusters = [2 ** x for x in range(2, N + 1)]
     print(clusters)
 
     variances = list()
@@ -20,15 +17,15 @@ def find_N(classes):
         variances.append(variance)
         errors.append(error)
 
-    
     fig, axs = plt.subplots(2, sharex=True, figsize=(20, 10))
-    axs[0].plot(clusters, variances)    
+    axs[0].plot(clusters, variances)
     axs[0].set_title("Variances")
     axs[0].set_xlabel("Clusters")
     axs[1].plot(clusters, errors)
     axs[1].set_title("Errors")
     axs[1].set_xlabel("Clusters")
     plt.savefig('plot.png')
+
 
 def main():
     classes = [
@@ -41,11 +38,13 @@ def main():
     cluster = N ** 2
     variance, error, model = functions.vocabulaire(cluster, classes[1:3])
 
-    functions.testVect(classes[1:3], model)
+    functions.test_vect(classes[1:3], model)
 
     X, Y = functions.apprentissage(cluster)
-    #print(X, Y)
-    functions.KDA(X, Y)
+    # functions.KDA(X, Y)
+
+    functions.learn_svc(X, Y, model)
+
 
 if __name__ == '__main__':
     main()

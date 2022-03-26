@@ -1,17 +1,25 @@
 import glob
 import cv2
 import numpy as np
+
+
 def warn(*args, **kwargs): pass
+
+
 import warnings
+
 warnings.warn = warn
 from sklearn.cluster import MiniBatchKMeans
 import pickle
 import os
 import dml
+from sklearn.svm import SVC
 
 # https://yohanes.gultom.id/2018/05/20/sift-surf-bow-for-big-number-of-clusters/
 import random
-def vocabulaire(N : int, paths : list):
+
+
+def vocabulaire(N: int, paths: list):
     descriptors_list = list()
     s = cv2.xfeatures2d.SURF_create()
     for path in paths:
@@ -19,7 +27,6 @@ def vocabulaire(N : int, paths : list):
             current_image = cv2.imread(image)
             current_image_but_in_gray = cv2.cvtColor(current_image, cv2.COLOR_BGR2GRAY)
             kpts, descriptors = s.detectAndCompute(current_image_but_in_gray, None)
-            # kp_img = cv2.drawKeypoints(current_image_but_in_gray, kpts, None, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             descriptors_list.extend(descriptors)
     dataset = np.array(descriptors_list)
     model = MiniBatchKMeans(n_clusters=N)
@@ -33,7 +40,7 @@ def vocabulaire(N : int, paths : list):
         center = centers[class_predicted]
         local_center = dataset[i]
         local_max = np.linalg.norm(center - local_center)
-        if(local_max > error): error = local_max
+        if local_max > error: error = local_max
     return variance, error, model
 
 
@@ -49,23 +56,27 @@ def vectoriser(image, vocabulaire):
 
     return vocabulaire.predict(descriptors)
 
-def testVect(classes, model):
+
+def test_vect(classes, model):
     vect_list = []
     file_list = []
     for path in classes:
         for image in glob.glob(f'{path}/*.jpg'):
             vect_list.append(vectoriser(cv2.imread(image), model))
             file_list.append(image)
-    
-    with open(os.path.join('saves','base_vectors.pickle'), 'wb') as f:
+
+    with open(os.path.join('saves', 'base_vectors.pickle'), 'wb') as f:
         pickle.dump(vect_list, f)
-    with open(os.path.join('saves','base_files.pickle'), 'wb') as f:
+    with open(os.path.join('saves', 'base_files.pickle'), 'wb') as f:
         pickle.dump(file_list, f)
 
-def apprentissage(N):
-    vectors = pickle.load(open(os.path.join('saves', 'base_vectors.pickle'), 'rb'))
-    files = pickle.load(open(os.path.join('saves', 'base_files.pickle'), 'rb'))
+
+def apprentissage(N, vectors=None, files=None):
     classes = ['flamingo', 'panda']
+    if not vectors and not files:
+        vectors = pickle.load(open(os.path.join('saves', 'base_vectors.pickle'), 'rb'))
+        files = pickle.load(open(os.path.join('saves', 'base_files.pickle'), 'rb'))
+
     X = []
     Y = []
     for i in range(len(vectors)):
@@ -73,7 +84,7 @@ def apprentissage(N):
         file = files[i]
         for j, c in enumerate(classes):
             if c in file:
-                Y.append(j+1)
+                Y.append(j + 1)
                 temp = []
                 for _ in range(N):
                     temp.append(0)
@@ -82,8 +93,30 @@ def apprentissage(N):
                 X.append(temp)
     return X, Y
 
+
 def KDA(X, Y):
-    s= dml.kda.KDA(n_components=2, kernel='poly', degree=8)
-    s.fit(X,Y)
+    s = dml.kda.KDA(n_components=2, kernel='poly', degree=8)
+    s.fit(X, Y)
     temp_value = s.transform(X)
     print(str("\nDegré polynome : " + str(8) + " -- Valeurs transform : " + str(temp_value)))
+
+
+def load_test_data(model):
+    classes = ['./classes/flamingo/test', './classes/panda/test']
+    vect_list = list()
+    file_list = list()
+    for path in classes:
+        for image in glob.glob(f'{path}/*.jpg'):
+            vect_list.append(vectoriser(cv2.imread(image), model))
+            file_list.append(image)
+    return apprentissage(len(model.classes_))
+
+
+def learn_svc(X, Y, model: MiniBatchKMeans):
+    model = SVC(C=2, kernel="poly", degree=2)
+    model.fit(X, Y)
+    X_test, Y_test = load_test_data(model)
+    # res = model.predict(X_test)
+
+    # print(res)
+    print(Y_test)
