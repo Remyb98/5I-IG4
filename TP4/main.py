@@ -1,7 +1,7 @@
 import functions
 import matplotlib.pyplot as plt
 
-N = 7
+N = 12
 
 
 def find_N(classes):
@@ -35,7 +35,8 @@ def main():
         './classes/wild_cat'
     ]
 
-    cluster = N ** 2
+    cluster = 2 ** N
+    print(cluster)
     variance, error, model = functions.vocabulaire(cluster, classes[1:3])
 
     functions.test_vect(classes[1:3], model)

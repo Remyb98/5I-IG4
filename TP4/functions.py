@@ -13,7 +13,7 @@ from sklearn.cluster import MiniBatchKMeans
 import pickle
 import os
 import dml
-from sklearn.svm import SVC
+from sklearn import svm
 
 # https://yohanes.gultom.id/2018/05/20/sift-surf-bow-for-big-number-of-clusters/
 import random
@@ -76,11 +76,11 @@ def apprentissage(N, vectors=None, files=None):
     if not vectors and not files:
         vectors = pickle.load(open(os.path.join('saves', 'base_vectors.pickle'), 'rb'))
         files = pickle.load(open(os.path.join('saves', 'base_files.pickle'), 'rb'))
-
     X = []
     Y = []
     for i in range(len(vectors)):
         vect = vectors[i]
+        print(len(vect))
         file = files[i]
         for j, c in enumerate(classes):
             if c in file:
@@ -111,9 +111,8 @@ def load_test_data(model):
             file_list.append(image)
     return apprentissage(len(model.classes_))
 
-
 def learn_svc(X, Y, model: MiniBatchKMeans):
-    model = SVC(C=2, kernel="poly", degree=2)
+    model = svm.SVC(kernel="poly", degree=1)
     model.fit(X, Y)
     X_test, Y_test = load_test_data(model)
     # res = model.predict(X_test)
