@@ -80,7 +80,6 @@ def apprentissage(N, vectors=None, files=None):
     Y = []
     for i in range(len(vectors)):
         vect = vectors[i]
-        print(len(vect))
         file = files[i]
         for j, c in enumerate(classes):
             if c in file:
@@ -102,20 +101,31 @@ def KDA(X, Y):
 
 
 def load_test_data(model):
-    classes = ['./classes/flamingo/test', './classes/panda/test']
-    vect_list = list()
-    file_list = list()
-    for path in classes:
-        for image in glob.glob(f'{path}/*.jpg'):
-            vect_list.append(vectoriser(cv2.imread(image), model))
-            file_list.append(image)
-    return apprentissage(len(model.classes_))
+    classes = ['flamingo', 'panda']
+    vectors = pickle.load(open(os.path.join('saves', 'base_vectors_test.pickle'), 'rb'))
+    files = pickle.load(open(os.path.join('saves', 'base_files_test.pickle'), 'rb'))
+
+    X = []
+    Y = []
+    for i in range(len(vectors)):
+        vect = vectors[i]
+        file = files[i]
+        for j, c in enumerate(classes):
+            if c in file:
+                Y.append(j + 1)
+                temp = []
+                for _ in range(4096):
+                    temp.append(0)
+                for e in vect:
+                    temp[e] += 1
+                X.append(temp)
+    return X, Y
 
 def learn_svc(X, Y, model: MiniBatchKMeans):
     model = svm.SVC(kernel="poly", degree=1)
     model.fit(X, Y)
     X_test, Y_test = load_test_data(model)
-    # res = model.predict(X_test)
+    res = model.predict(X_test)
 
-    # print(res)
+    print(res)
     print(Y_test)

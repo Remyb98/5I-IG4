@@ -39,7 +39,7 @@ def main():
     print(cluster)
     variance, error, model = functions.vocabulaire(cluster, classes[1:3])
 
-    functions.test_vect(classes[1:3], model)
+    #functions.test_vect(classes[1:3], model)
 
     X, Y = functions.apprentissage(cluster)
     # functions.KDA(X, Y)
